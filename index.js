@@ -1,4 +1,3 @@
-
 require("./utils.js");
 
 require('dotenv').config();
@@ -15,7 +14,7 @@ const app = express();
 const Joi = require("joi");
 
 
-const expireTime = 24 * 60 * 60 * 1000; //expires after 1 day  (hours * minutes * seconds * millis)
+const expireTime = 1 * 60 * 60 * 1000; //expires after 1 day  (hours * minutes * seconds * millis)
 
 /* secret information section */
 const mongodb_host = process.env.MONGODB_HOST;
@@ -23,7 +22,6 @@ const mongodb_user = process.env.MONGODB_USER;
 const mongodb_password = process.env.MONGODB_PASSWORD;
 const mongodb_database = process.env.MONGODB_DATABASE;
 const mongodb_session_secret = process.env.MONGODB_SESSION_SECRET;
-
 const node_session_secret = process.env.NODE_SESSION_SECRET;
 /* END secret section */
 
@@ -38,7 +36,7 @@ var mongoStore = MongoStore.create({
 	crypto: {
 		secret: mongodb_session_secret
 	}
-})
+}) 
 
 app.use(session({ 
     secret: node_session_secret,
@@ -49,7 +47,12 @@ app.use(session({
 ));
 
 app.get('/', (req,res) => {
-    res.send("<h1>Hello World!</h1>");
+    if (!req.session.authenticated) {
+      return  res.send("<a href='/createUser'>sign up</a> <br> <a href='/login'>login</a>  ");
+       
+    }
+    var username = req.session.username
+    res.send(`Hello, ${username}! <br> <a href='/loggedin'> Go to Members Area</a> <br> <a href='/logout'> Logout</a> `);
 });
 
 app.get('/nosql-injection', async (req,res) => {
@@ -90,24 +93,70 @@ app.get('/about', (req,res) => {
 
 app.get('/contact', (req,res) => {
     var missingEmail = req.query.missing;
+    var missingEmails = req.query.missings;
+    var missingEmailss = req.query.missingss;
+    var emailandpassword = req.query.ep;
+    var emailandusername = req.query.eu;
+    var usernameandpassword = req.query.up;
+    var emailandusernameandpassword = req.query.eup;
     var html = `
         email address:
         <form action='/submitEmail' method='post'>
             <input name='email' type='text' placeholder='email'>
+            <input name='username' type='text' placeholder='username'>
+            <input name='password' type='password' placeholder='password'>
             <button>Submit</button>
         </form>
     `;
     if (missingEmail) {
-        html += "<br> email is required";
+        html += "<br> email is required <br> <a href='/contact'>try again</a>";
     }
+    if (missingEmails) {
+        html += "<br> username is required <br> <a href='/contact'>try again</a>";
+    } 
+    if (missingEmailss) {
+        html += "<br> password is required <br> <a href='/contact'>try again</a>";
+    }
+    if (emailandpassword) {
+        html += "<br> email and password is required <br> <a href='/contact'>try again</a>";
+    }
+    if (emailandusername) {
+        html += "<br> username and email is required <br> <a href='/contact'>try again</a>";
+    } 
+    if (usernameandpassword) {
+        html += "<br> password and username is required <br> <a href='/contact'>try again</a>";
+    }
+    if (emailandusernameandpassword ) {
+        html += "<br> password,username and email is required <br> <a href='/contact'>try again</a>";
+    }
+
     res.send(html);
 });
 
-app.post('/submitEmail', (req,res) => {
+app.post('/submitEmail', async (req,res) => {
     var email = req.body.email;
-    if (!email) {
-        res.redirect('/contact?missing=1');
+    var username = req.body.username;
+    var password = req.body.password;
+    if (!password&&!username&&!email) {
+        return  res.redirect('/contact?eup=1');
+      }
+    if (!email&&!password) {
+        return res.redirect('/contact?ep=1');
+    }if (!username&&!email) {
+       return  res.redirect('/contact?eu=1');
     }
+    if (!password&&!username) {
+      return  res.redirect('/contact?up=1');
+    }
+      if (!email) {
+        return res.redirect('/contact?missing=1');
+    }if (!username) {
+       return  res.redirect('/contact?missings=1');
+    }
+    if (!password) {
+      return  res.redirect('/contact?missingss=1');
+    }
+
     else {
         res.send("Thanks for subscribing with your email: "+email);
     }
@@ -115,41 +164,103 @@ app.post('/submitEmail', (req,res) => {
 
 
 app.get('/createUser', (req,res) => {
+    var missingUsername = req.query.missing;
+    var missingEmail = req.query.missings;
+    var missingPassword = req.query.missingss;
+    var emailandpassword = req.query.ep;
+    var emailandusername = req.query.eu;
+    var usernameandpassword = req.query.up;
+    var emailandusernameandpassword = req.query.eup;
     var html = `
-    create user
+    Sign Up:
     <form action='/submitUser' method='post'>
     <input name='username' type='text' placeholder='username'>
+    <br>
+    <input name='email' type='text' placeholder='email'>
+    <br>
     <input name='password' type='password' placeholder='password'>
+    <br>
     <button>Submit</button>
     </form>
     `;
+    if (missingUsername) {
+        html += "<br> username is required <br> <a href='/createUser'>try again</a>";
+    }
+    if (missingEmail) {
+        html += "<br> email is required <br> <a href='/createUser'>try again</a> ";
+    }
+    if (missingPassword) {
+        html += "<br> password is required <br> <a href='/createUser'>try again</a> ";
+    }
+    if (emailandpassword) {
+        html += "<br> email and password is required <br> <a href='/createUser'>try again</a>";
+    }
+    if (emailandusername) {
+        html += "<br> username and email is required <br> <a href='/createUser'>try again</a>";
+    } 
+    if (usernameandpassword) {
+        html += "<br> password and username is required <br> <a href='/createUser'>try again</a>";
+    }
+    if (emailandusernameandpassword ) {
+        html += "<br> password,username and email is required <br> <a href='/createUser'>try again</a>";
+    }
+
+
+
+
     res.send(html);
 });
 
 
 app.get('/login', (req,res) => {
+    var missingUsername = req.query.missing;
     var html = `
     log in
     <form action='/loggingin' method='post'>
     <input name='username' type='text' placeholder='username'>
+    <br>
     <input name='password' type='password' placeholder='password'>
+    <br>
     <button>Submit</button>
     </form>
     `;
+    if (missingUsername) {
+        html += "<br> Invalid username/password combination <br> <a href='/login'>try again</a>";
+    }
     res.send(html);
 });
 
 app.post('/submitUser', async (req,res) => {
+    var email = req.body.email;
     var username = req.body.username;
     var password = req.body.password;
-
-	const schema = Joi.object(
+    if (!password&&!username&&!email) {
+        return  res.redirect('/createUser?eup=1');
+      }
+    if (!email&&!password) {
+        return res.redirect('/createUser?ep=1');
+    }if (!username&&!email) {
+       return  res.redirect('/createUser?eu=1');
+    }
+    if (!password&&!username) {
+      return  res.redirect('/createUser?up=1');
+    }
+      if (!username) {
+        return res.redirect('/createUser?missing=1');
+    }if (!email) {
+       return  res.redirect('/createUser?missings=1');
+    }
+    if (!password) {
+      return  res.redirect('/createUser?missingss=1');
+    } else {
+    const schema = Joi.object(
 		{
 			username: Joi.string().alphanum().max(20).required(),
-			password: Joi.string().max(20).required()
-		});
+			password: Joi.string().max(20).required(),
+		    email: Joi.string().email().required()
+        });
 	
-	const validationResult = schema.validate({username, password});
+	const validationResult = schema.validate({username, password, email});
 	if (validationResult.error != null) {
 	   console.log(validationResult.error);
 	   res.redirect("/createUser");
@@ -158,17 +269,18 @@ app.post('/submitUser', async (req,res) => {
 
     var hashedPassword = await bcrypt.hash(password, saltRounds);
 	
-	await userCollection.insertOne({username: username, password: hashedPassword});
+	await userCollection.insertOne({username: username,email: email, password: hashedPassword});
 	console.log("Inserted user");
 
     var html = "successfully created user";
     res.send(html);
+    }
 });
 
 app.post('/loggingin', async (req,res) => {
     var username = req.body.username;
     var password = req.body.password;
-
+    var email = req.body.email;
 	const schema = Joi.string().max(20).required();
 	const validationResult = schema.validate(username);
 	if (validationResult.error != null) {
@@ -177,12 +289,12 @@ app.post('/loggingin', async (req,res) => {
 	   return;
 	}
 
-	const result = await userCollection.find({username: username}).project({username: 1, password: 1, _id: 1}).toArray();
+	const result = await userCollection.find({email: email}).project({email: 1, password: 1, _id: 1}).toArray();
 
 	console.log(result);
 	if (result.length != 1) {
 		console.log("user not found");
-		res.redirect("/login");
+		res.redirect("/login?missing=1");
 		return;
 	}
 	if (await bcrypt.compare(password, result[0].password)) {
@@ -191,12 +303,12 @@ app.post('/loggingin', async (req,res) => {
 		req.session.username = username;
 		req.session.cookie.maxAge = expireTime;
 
-		res.redirect('/loggedIn');
+		res.redirect('/loggedin');
 		return;
 	}
 	else {
 		console.log("incorrect password");
-		res.redirect("/login");
+		res.redirect("/login?missing=1");
 		return;
 	}
 });
@@ -204,6 +316,7 @@ app.post('/loggingin', async (req,res) => {
 app.get('/loggedin', (req,res) => {
     if (!req.session.authenticated) {
         res.redirect('/login');
+       
     }
     var html = `
     You are logged in!
@@ -213,25 +326,26 @@ app.get('/loggedin', (req,res) => {
 
 app.get('/logout', (req,res) => {
 	req.session.destroy();
-    var html = `
-    You are logged out.
-    `;
-    res.send(html);
+   // var html = `
+   // You are logged out.
+   // `;
+   // res.send(html);
+    res.redirect('/');
 });
 
 
 app.get('/cat/:id', (req,res) => {
 
-    var cat = req.params.id;
+    var bat = req.params.id;
 
-    if (cat == 1) {
+    if (bat == 1) {
         res.send("Fluffy: <img src='/fluffy.gif' style='width:250px;'>");
     }
-    else if (cat == 2) {
+    else if (bat == 2) {
         res.send("Socks: <img src='/socks.gif' style='width:250px;'>");
     }
     else {
-        res.send("Invalid cat id: "+cat);
+        res.send("Invalid cat id: "+bat);
     }
 });
 
@@ -245,4 +359,4 @@ app.get("*", (req,res) => {
 
 app.listen(port, () => {
 	console.log("Node application listening on port "+port);
-}); 
+});
