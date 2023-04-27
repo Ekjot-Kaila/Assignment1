@@ -325,7 +325,7 @@ app.post("/loggingin", async (req, res) => {
   if (await bcrypt.compare(password, result[0].password)) {
     console.log("correct password");
     req.session.authenticated = true;
-    req.session.username = username;
+   // req.session.username = username;
     req.session.cookie.maxAge = expireTime;
 
     res.redirect("/loggedin");
