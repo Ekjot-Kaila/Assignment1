@@ -295,7 +295,8 @@ app.post("/submitUser", async (req, res) => {
     req.session.authenticated = true;
     req.session.username = username;
     var html = "successfully created user";
-    res.send(html);
+   // res.send(html);
+    res.redirect("/loggedin")
   }
 });
 
