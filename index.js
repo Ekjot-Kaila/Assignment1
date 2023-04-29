@@ -281,7 +281,7 @@ app.post("/submitUser", async (req, res) => {
     if (validationResult.error != null) {
       console.log(validationResult.error);
       res.redirect("/createUser");
-      return;
+      return; 
     }
 
     var hashedPassword = await bcrypt.hash(password, saltRounds);
@@ -294,9 +294,10 @@ app.post("/submitUser", async (req, res) => {
     console.log("Inserted user");
     req.session.authenticated = true;
     req.session.username = username;
+    
     var html = "successfully created user";
    // res.send(html);
-    res.redirect("/loggedin")
+   return res.redirect("/loggedin") 
   }
 });
 
@@ -314,9 +315,11 @@ app.post("/loggingin", async (req, res) => {
 
   const result = await userCollection
     .find({ email: email })
-    .project({ email: 1, password: 1, _id: 1 })
+    .project({ email: 1, password: 1, username:1, _id: 1 })
     .toArray();
 
+  
+    
   console.log(result);
   if (result.length != 1) {
     console.log("user not found");
@@ -325,8 +328,8 @@ app.post("/loggingin", async (req, res) => {
   }
   if (await bcrypt.compare(password, result[0].password)) {
     console.log("correct password");
-    req.session.authenticated = true;
-   // req.session.username = username;
+    req.session.authenticated = true
+    req.session.username = result[0].username;
     req.session.cookie.maxAge = expireTime;
 
     res.redirect("/loggedin");
@@ -340,7 +343,7 @@ app.post("/loggingin", async (req, res) => {
 
 app.get("/loggedin", (req, res) => {
   if (!req.session.authenticated) {
-    res.redirect("/login");
+   return res.redirect("/");
   }
   var username = req.session.username;
   var randomnumber = Math.floor(Math.random() * 3);
