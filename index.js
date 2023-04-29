@@ -301,7 +301,7 @@ app.post("/submitUser", async (req, res) => {
 });
 
 app.post("/loggingin", async (req, res) => {
-  var username = req.body.username;
+ // var username = req.body.username;
   var password = req.body.password;
   var email = req.body.email;
   const schema = Joi.string().max(20).required();
