@@ -49,12 +49,12 @@ app.use(
 app.get("/", (req, res) => {
   if (!req.session.authenticated) {
     return res.send(
-      "<a href='/createUser'>sign up</a> <br> <a href='/login'>login</a>  "
+      "<a href='/signup'>sign up</a> <br> <a href='/login'>login</a>  "
     );
   }
   var username = req.session.username;
   res.send(
-    `Hello, ${username}! <br> <a href='/loggedin'> Go to Members Area</a> <br> <a href='/logout'> Logout</a> `
+    `Hello, ${username}! <br> <a href='/members'> Go to Members Area</a> <br> <a href='/logout'> Logout</a> `
   );
 });
 
@@ -176,7 +176,7 @@ app.post("/submitEmail", async (req, res) => {
   }
 });
 
-app.get("/createUser", (req, res) => {
+app.get("/signup", (req, res) => {
   var missingUsername = req.query.missing;
   var missingEmail = req.query.missings;
   var missingPassword = req.query.missingss;
@@ -198,30 +198,30 @@ app.get("/createUser", (req, res) => {
     `;
   if (missingUsername) {
     html +=
-      "<br> username is required <br> <a href='/createUser'>try again</a>";
+      "<br> username is required <br> <a href='/signup'>try again</a>";
   }
   if (missingEmail) {
-    html += "<br> email is required <br> <a href='/createUser'>try again</a> ";
+    html += "<br> email is required <br> <a href='/signup'>try again</a> ";
   }
   if (missingPassword) {
     html +=
-      "<br> password is required <br> <a href='/createUser'>try again</a> ";
+      "<br> password is required <br> <a href='/signup'>try again</a> ";
   }
   if (emailandpassword) {
     html +=
-      "<br> email and password is required <br> <a href='/createUser'>try again</a>";
+      "<br> email and password is required <br> <a href='/signup'>try again</a>";
   }
   if (emailandusername) {
     html +=
-      "<br> username and email is required <br> <a href='/createUser'>try again</a>";
+      "<br> username and email is required <br> <a href='/signup'>try again</a>";
   }
   if (usernameandpassword) {
     html +=
-      "<br> password and username is required <br> <a href='/createUser'>try again</a>";
+      "<br> password and username is required <br> <a href='/signup'>try again</a>";
   }
   if (emailandusernameandpassword) {
     html +=
-      "<br> password,username and email is required <br> <a href='/createUser'>try again</a>";
+      "<br> password,username and email is required <br> <a href='/signup'>try again</a>";
   }
 
   res.send(html);
@@ -251,25 +251,25 @@ app.post("/submitUser", async (req, res) => {
   var username = req.body.username;
   var password = req.body.password;
   if (!password && !username && !email) {
-    return res.redirect("/createUser?eup=1");
+    return res.redirect("/signup?eup=1");
   }
   if (!email && !password) {
-    return res.redirect("/createUser?ep=1");
+    return res.redirect("/signup?ep=1");
   }
   if (!username && !email) {
-    return res.redirect("/createUser?eu=1");
+    return res.redirect("/signup?eu=1");
   }
   if (!password && !username) {
-    return res.redirect("/createUser?up=1");
+    return res.redirect("/signup?up=1");
   }
   if (!username) {
-    return res.redirect("/createUser?missing=1");
+    return res.redirect("/signup?missing=1");
   }
   if (!email) {
-    return res.redirect("/createUser?missings=1");
+    return res.redirect("/signup?missings=1");
   }
   if (!password) {
-    return res.redirect("/createUser?missingss=1");
+    return res.redirect("/signup?missingss=1");
   } else {
     const schema = Joi.object({
       username: Joi.string().alphanum().max(20).required(),
@@ -280,7 +280,7 @@ app.post("/submitUser", async (req, res) => {
     const validationResult = schema.validate({ username, password, email });
     if (validationResult.error != null) {
       console.log(validationResult.error);
-      res.redirect("/createUser");
+      res.redirect("/signup");
       return; 
     }
 
@@ -297,7 +297,7 @@ app.post("/submitUser", async (req, res) => {
     
     var html = "successfully created user";
    // res.send(html);
-   return res.redirect("/loggedin") 
+   return res.redirect("/members") 
   }
 });
 
@@ -328,12 +328,12 @@ app.post("/loggingin", async (req, res) => {
   }
   if (await bcrypt.compare(password, result[0].password)) {
     console.log("correct password");
-    req.session.authenticated = true
+    req.session.authenticated = true;
     req.session.username = result[0].username;
     req.session.cookie.maxAge = expireTime;
-
-    res.redirect("/loggedin");
-    return;
+    
+    res.redirect("/members");
+    
   } else {
     console.log("incorrect password");
     res.redirect("/login?missing=1");
@@ -341,9 +341,10 @@ app.post("/loggingin", async (req, res) => {
   }
 });
 
-app.get("/loggedin", (req, res) => {
+app.get("/members", (req, res) => {
   if (!req.session.authenticated) {
-   return res.redirect("/");
+     return res.redirect("/");
+      
   }
   var username = req.session.username;
   var randomnumber = Math.floor(Math.random() * 3);
@@ -351,7 +352,7 @@ app.get("/loggedin", (req, res) => {
     res.send(`Hello, ${username}! <br>
      
       <br>
-      "Fluffy: <img src='/fluffy.gif' style='width:250px;'>"
+       <img src='/giphy2.gif' style='width:250px;'>
       <a href='/logout'> Logout</a>    
        `);
   }
@@ -359,7 +360,7 @@ app.get("/loggedin", (req, res) => {
     res.send(`Hello, ${username}! <br>
           
            <br>
-           "Fluffy: <img src='/socks.gif' style='width:250px;'>"
+            <img src='/giphy1.gif' style='width:250px;'>
            <a href='/logout'> Logout</a>    
             `);
   }
@@ -367,7 +368,7 @@ app.get("/loggedin", (req, res) => {
     res.send(`Hello, ${username}! <br>
               
                <br>
-               "Fluffy: <img src='/giphy.gif' style='width:250px;'>"
+                <img src='/giphy.gif' style='width:250px;'>
                <a href='/logout'> Logout</a>    
                 `);
   }
